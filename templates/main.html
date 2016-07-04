@@ -1,11 +1,26 @@
-{% "base.html" %}
+{% extends "base.html" %}
 {% block title %}Something Pathetic{% endblock %}
 {% load staticfiles  %}
 {% block scripts %}
 <script type="text/javascript">
+$(document).ready(function() {
+$('#pay_form').on('submit', function(event){
+    event.preventDefault();
+    console.log("form submitted!")  // sanity check
+    $.ajax({
+        url : "pay_lessons",
+        type : "POST",
+        data: $("#pay_form").serialize(),
+        success : function(json) {
+            $("#paid_num").text(json.lesson_num)
+        },
+        error : function(xhr, errmsg, err) {console.log(xhr.status + ": " + xhr.responseText);}
+    });
+ });
+ });
 </script>
-<script type="text/javascript" src="{% static "js/main.js" %}"> </script>
 <!---
+<script type="text/javascript" src="{% static "js/main.js" %}"> </script>
 <script type="text/javascript" src="{% static "js/jquery.fancybox.pack.js" %}"> </script>
 --> 
 {% endblock %}
@@ -16,4 +31,11 @@
 --> 
  {% endblock %}
  {% block content %}
+ You have paid lessons <span id="paid_num">{{paid_num}}</span> </br>
+ {% if paid_num == 0 %}
+ <form id="pay_form">
+{% csrf_token %}
+ Pay for <input type="text" name="lesson_num"/> <input type="submit">
+ </form>
+ {% endif %}
  {% endblock %}

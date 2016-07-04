@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'lesson',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -55,7 +56,7 @@ ROOT_URLCONF = 'mychinese.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+	'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -77,10 +78,9 @@ WSGI_APPLICATION = 'mychinese.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'kcyxa$chinese',
-        'USER':'kcyxa',
-        'PASSWORD':'Myxaxa_123',
-        'HOST' : 'kcyxa.mysql.pythonanywhere-services.com'
+        'NAME': 'mychinese',
+        'USER':'root',
+        'PASSWORD':'myxaxa',
         }
 }
 
@@ -137,9 +137,9 @@ STATICFILES_FINDERS = (
              'django.contrib.staticfiles.finders.DefaultStorageFinder',
                 )
 
-TEMPLATE_DIRS = (
+#TEMPLATE_DIRS = (
             # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
             # Always use forward slashes, even on Windows.
             # Don't forget to use absolute paths, not relative paths.
             #os.path.join(BASE_DIR, 'media/templates').replace('\\','/'),
-                        )
+ #                       )

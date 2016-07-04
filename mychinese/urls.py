@@ -13,14 +13,21 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import patterns, include, url
+from django.conf.urls import patterns,  url, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.views import login
+from django.contrib.auth.views import logout
+
+from lesson.views import  pay_lessons
+
 admin.autodiscover()
 
 urlpatterns = patterns('',
                  (r'^$', 'mychinese.index.index'),
+                 url(r'^pay_lessons', pay_lessons),
                   # Examples:
                   # url(r'^$', 'almostmyigoogle.views.home', name='home'),
                   # url(r'^almostmyigoogle/', include('almostmyigoogle.foo.urls')),
@@ -30,5 +37,18 @@ urlpatterns = patterns('',
 
                   # Uncomment the next line to enable the admin:
                   url(r'^admin/', include(admin.site.urls)),
+                  url(r'^accounts/login/$', auth_views.login),
+                  url(
+                      regex=r'^login/$', 
+                      view=login, 
+                      kwargs={'template_name': 'login.html'}, 
+                       name='login'
+                   ),
+                   url(
+                      regex=r'^logout/$', 
+                      view=logout, 
+                      kwargs={'next_page': '/'}, 
+                      name='logout'
+                     ),
 ) 
 urlpatterns += staticfiles_urlpatterns()
