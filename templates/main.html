@@ -2,25 +2,13 @@
 {% block title %}Something Pathetic{% endblock %}
 {% load staticfiles  %}
 {% block scripts %}
-<script type="text/javascript">
-$(document).ready(function() {
-$('#pay_form').on('submit', function(event){
-    event.preventDefault();
-    console.log("form submitted!")  // sanity check
-    $.ajax({
-        url : "pay_lessons",
-        type : "POST",
-        data: $("#pay_form").serialize(),
-        success : function(json) {
-            $("#paid_num").text(json.lesson_num)
-        },
-        error : function(xhr, errmsg, err) {console.log(xhr.status + ": " + xhr.responseText);}
-    });
- });
- });
-</script>
-<!---
 <script type="text/javascript" src="{% static "js/main.js" %}"> </script>
+<script type="text/javascript">
+    {% if lesson %}
+    var last_lesson = {{ lesson|safe }};
+    {% endif %}
+</script>
+<!--
 <script type="text/javascript" src="{% static "js/jquery.fancybox.pack.js" %}"> </script>
 --> 
 {% endblock %}
@@ -31,11 +19,23 @@ $('#pay_form').on('submit', function(event){
 --> 
  {% endblock %}
  {% block content %}
+ <div>
  You have paid lessons <span id="paid_num">{{paid_num}}</span> </br>
+ </div>
+ <div>
+     <button id="start_btn">Start new lesson</button>    
+ </div>
+     
  {% if paid_num == 0 %}
  <form id="pay_form">
-{% csrf_token %}
  Pay for <input type="text" name="lesson_num"/> <input type="submit">
  </form>
  {% endif %}
+ <div id="lesson" >
+     <h3>Last lesson</h3?
+     <div id="date"></div>
+     Dialog:<div id="dialog"></div>
+     Note: <div id="note"></div>
+     Home work: <div id="home_work"> </div>
+</div>
  {% endblock %}

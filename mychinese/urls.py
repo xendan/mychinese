@@ -20,29 +20,42 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import login
 from django.contrib.auth.views import logout
+from django.http import HttpResponse, JsonResponse
 
-from lesson.views import  pay_lessons
+from lessons.views import  pay_lessons, create_lesson, my_serializer
+from lessons.models import Dialog, HomeWork
+
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
-                 (r'^$', 'mychinese.index.index'),
+
+def create_get(cls):
+    def handler(request, obj_id):
+        try:
+            obj_json = my_serializer.to_json(cls.objects.get(pk = obj_id))
+        except cls.DoesNotExist:
+            obj_json = None
+        return JsonResonse(obj_json) 
+
+    return url(r'^lessons/%s/([0-9]+)', handler)
+
+urlpatterns = [ create_get(HomeWork),
+                create_get(Dialog),
+                 url(r'^$', 'mychinese.index.index'),
                  url(r'^pay_lessons', pay_lessons),
-                  # Examples:
-                  # url(r'^$', 'almostmyigoogle.views.home', name='home'),
-                  # url(r'^almostmyigoogle/', include('almostmyigoogle.foo.urls')),
+                 url(r'^lesson', create_lesson),
 
                   # Uncomment the admin/doc line below to enable admin documentation:
                   url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
                   # Uncomment the next line to enable the admin:
-                  url(r'^admin/', include(admin.site.urls)),
+                  url(r'^admin/', admin.site.urls),
                   url(r'^accounts/login/$', auth_views.login),
                   url(
                       regex=r'^login/$', 
                       view=login, 
                       kwargs={'template_name': 'login.html'}, 
-                       name='login'
+                      name='login'
                    ),
                    url(
                       regex=r'^logout/$', 
@@ -50,5 +63,4 @@ urlpatterns = patterns('',
                       kwargs={'next_page': '/'}, 
                       name='logout'
                      ),
-) 
-urlpatterns += staticfiles_urlpatterns()
+] 

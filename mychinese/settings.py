@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'lesson',
+    'lessons',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -78,9 +78,10 @@ WSGI_APPLICATION = 'mychinese.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mychinese',
-        'USER':'root',
-        'PASSWORD':'secret',
+        'NAME': 'kcyxa$default',
+        'USER':'kcyxa',
+        'HOST': 'kcyxa.mysql.pythonanywhere-services.com',
+        'PASSWORD':'Myxaxa_123',
         }
 }
 

@@ -1,0 +1,23 @@
+from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_protect
+
+
+from lessons.models import PaidCounter
+
+@csrf_protect
+def pay_lessons(request):
+    if request.method == 'POST':
+        lesson_num = request.POST.get('lesson_num')
+        counter = PaidCounter.load()
+        counter.num = int(lesson_num)
+        counter.save()
+        return JsonResponse({"lesson_num": lesson_num})
+    else:
+        return JsonResponse({"nothing to see": "this isn't happening"})
+
+@csrf_protect
+def create_lesson(request):
+    counter = PaidCounter.load()
+
