@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from mychinese import dbproperties
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -78,10 +80,10 @@ WSGI_APPLICATION = 'mychinese.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'kcyxa$default',
-        'USER':'kcyxa',
-        'HOST': 'kcyxa.mysql.pythonanywhere-services.com',
-        'PASSWORD':'Myxaxa_123',
+        'NAME': dbproperties.db,
+        'USER': dbproperties.user,
+        'HOST': dbproperties.host,
+        'PASSWORD':dbproperties.password,
         }
 }
 
@@ -124,7 +126,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (
-            os.path.join(BASE_DIR, "media/static"),
+            os.path.join(BASE_DIR, "static"),
                 # Put strings here, like "/home/html/static" or "C:/www/django/static".
                     # Always use forward slashes, even on Windows.
                         # Don't forget to use absolute paths, not relative paths.
@@ -133,9 +135,9 @@ STATICFILES_DIRS = (
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
-          'django.contrib.staticfiles.finders.FileSystemFinder',
-           'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-             'django.contrib.staticfiles.finders.DefaultStorageFinder',
+            'django.contrib.staticfiles.finders.FileSystemFinder',
+            'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+            'django.contrib.staticfiles.finders.DefaultStorageFinder',
                 )
 
 #TEMPLATE_DIRS = (

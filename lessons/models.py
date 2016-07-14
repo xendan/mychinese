@@ -6,10 +6,11 @@ class HomeWork(models.Model):
     answer = models.TextField()
     correct = models.TextField()
     def __str__(self):
-        return task
+        return self.task
 
 class Dialog(models.Model):
     link = models.CharField(max_length = 250)
+    name = models.TextField()
     lessons_in_dict = models.BooleanField(default=False)
     def __str__(self):
         return "Link=%s; in dict= %s" % (self.link, self.lessons_in_dict)

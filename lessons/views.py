@@ -9,11 +9,9 @@ from lessons.models import PaidCounter, Lesson, Dialog, HomeWork
 from django.core.serializers.json import Serializer as Builtin_Serializer
 
 class MySerializer(Builtin_Serializer):
-    def get_dump_object(self, obj):
-        return self._current
-    
     def to_json(self, obj):
-       return self.serialize([obj,])[1:-1]
+        if obj:
+            return self.serialize([obj,])[1:-1]
 
 my_serializer = MySerializer()
 

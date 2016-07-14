@@ -2,7 +2,8 @@
 {% block title %}Something Pathetic{% endblock %}
 {% load staticfiles  %}
 {% block scripts %}
-<script type="text/javascript" src="{% static "js/main.js" %}"> </script>
+{% load static %}
+<script type="text/javascript" src="{% static 'js/main.js' %}"> </script>
 <script type="text/javascript">
     {% if lesson %}
     var last_lesson = {{ lesson|safe }};
@@ -20,7 +21,7 @@
  {% endblock %}
  {% block content %}
  <div>
- You have paid lessons <span id="paid_num">{{paid_num}}</span> </br>
+ You have paid lessons <span id="paid_num">{{paid_num}}</span>
  </div>
  <div>
      <button id="start_btn">Start new lesson</button>    
@@ -32,7 +33,7 @@
  </form>
  {% endif %}
  <div id="lesson" >
-     <h3>Last lesson</h3?
+     <h3>Last lesson</h3>
      <div id="date"></div>
      Dialog:<div id="dialog"></div>
      Note: <div id="note"></div>
