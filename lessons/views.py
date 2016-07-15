@@ -5,13 +5,14 @@ from django.views.decorators.csrf import csrf_protect
 
 from django.core import serializers
 
-from lessons.models import PaidCounter, Lesson, Dialog, HomeWork
+from lessons.models import PaidCounter, Lesson, Dialog, HomeWork, Note
 from django.core.serializers.json import Serializer as Builtin_Serializer
 
 class MySerializer(Builtin_Serializer):
-    def to_json(self, obj):
+    def to_json(self, obj, **options):
         if obj:
-            return self.serialize([obj,])[1:-1]
+            fields = options.pop("fields", None)
+            return self.serialize([obj,], fields=fields)[1:-1]
 
 my_serializer = MySerializer()
 
@@ -36,6 +37,9 @@ def create_lesson(request):
         home_work.save()
         lesson = Lesson(dialog = dialog, home_work = home_work)
         lesson.save()
+        note = Note()
+        note.lesson = lesson
+        note.save()
         return lesson
 
     counter = PaidCounter.load()
@@ -44,3 +48,4 @@ def create_lesson(request):
     counter.save()
     lesson_json = my_serializer.to_json(create_lesson_inst())
     return HttpResponse(lesson_json, content_type='application/json')
+

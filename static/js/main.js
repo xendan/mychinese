@@ -63,10 +63,15 @@ $(document).ready(function() {
             append_to_dialog_div('link');
         }
     }
-    
+
+    function on_notes_loaded(notes_arr) {
+
+    }
+
     function on_lesson_loaded(lesson_json) {
         $("#date").html("Date:" + new Date(last_lesson.fields.date).toLocaleDateString("en-US"));
         rest_get("dialog", lesson_json.fields.dialog, on_dialog_loaded);
+        rest_search("note", lesson_json.pk, on_notes_loaded)
     }
 
     function start_new_lesson(lesson_json) {
@@ -77,6 +82,15 @@ $(document).ready(function() {
     }
 
     var rest_root = "lessons/";
+
+    function rest_search(name, lesson, handler) {
+        $.ajax({
+            url : rest_root + name,
+            success : handler,
+            error : handle_error,
+            data : {lesson: lesson}
+        });
+    }
 
     function rest_get(name, id, handler) {
         $.ajax({

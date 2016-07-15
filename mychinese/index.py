@@ -10,7 +10,7 @@ from lessons.views import my_serializer
 def index(request):
     counter = PaidCounter.load()
     try:
-        lesson_json = my_serializer.to_json(Lesson.objects.last())
+        lesson_json = my_serializer.to_json(Lesson.objects.last(), fields=("date", "dialog", "home_work", "notes"))
     except Lesson.DoesNotExist:
         lesson_json = None
     return  render_to_response('main.html', {'paid_num':counter.num, 'lesson': lesson_json}, context_instance=RequestContext(request))

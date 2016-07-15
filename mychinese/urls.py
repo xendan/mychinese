@@ -25,13 +25,17 @@ from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 
 from lessons.views import  pay_lessons, create_lesson, my_serializer
-from lessons.models import Dialog, HomeWork
+from lessons.models import Dialog, HomeWork, Note, Word
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 #import logging
 #logger = logging.getLogger(__name__)
 
 admin.autodiscover()
 
+rest_root = r'lessons/'
+
+def class_to_url(cls):
+    return re.escape(cls.__name__.lower())
 
 def create_get(cls):
     def handler(request, obj_id):
@@ -41,7 +45,7 @@ def create_get(cls):
             obj_json = None
         return HttpResponse(obj_json, content_type="application/json")
 
-    return url(r'^lessons/' + re.escape(cls.__name__.lower()) + r'/([0-9]+)', handler)
+    return url(rest_root + class_to_url(cls) + r'/([0-9]+)', handler)
 
 def create_put(cls):
     def handler(request):
@@ -52,11 +56,23 @@ def create_put(cls):
             return HttpResponse(request.body, content_type="application/json")
         else:
             return JsonResponse({"nothing to see": "this isn't happening"})
-    return url(r'^lessons/' + re.escape(cls.__name__.lower()), handler)
+    return url(rest_root + class_to_url(cls), handler)
+
+def create_search(cls, param_name):
+    def handler(request):
+        try:
+            param_value = request.GET.get(param_name, '')
+            obj_json = my_serializer.to_json(cls.objects.get(**{param_name : param_value}))
+        except cls.DoesNotExist:
+            obj_json = None
+        return HttpResponse(obj_json, content_type="application/json")
+    return url(rest_root + class_to_url(cls) + r'$', handler)
 
 urlpatterns = [ create_get(HomeWork),
                 create_get(Dialog),
                 create_put(Dialog),
+                create_search(Note, "lesson"),
+                create_search(Word, "lesson"),
                  url(r'^$', 'mychinese.index.index'),
                  url(r'^pay_lessons', pay_lessons),
                  url(r'^lessons/lesson', create_lesson),
