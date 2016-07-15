@@ -27,6 +27,8 @@ from django.http import HttpResponse, JsonResponse
 from lessons.views import  pay_lessons, create_lesson, my_serializer
 from lessons.models import Dialog, HomeWork
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+#import logging
+#logger = logging.getLogger(__name__)
 
 admin.autodiscover()
 
@@ -44,7 +46,8 @@ def create_get(cls):
 def create_put(cls):
     def handler(request):
         if request.method == 'PUT':
-            for obj in serializers.deserialize("json", request.body):
+            body_unicode = request.body.decode('utf-8')
+            for obj in serializers.deserialize("json", "[" + body_unicode + "]"):
                 obj.save()
             return HttpResponse(request.body, content_type="application/json")
         else:

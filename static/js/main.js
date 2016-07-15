@@ -45,9 +45,8 @@ $(document).ready(function() {
                      }, 100);
             });
         }
-
+        $("#dialog").html("");
         if (dialog_json.fields.link) {
-            $("#dialog_link_inp").remove();
             var dialog_href = $("<a target='_blank'  href='" + dialog_json.fields.link + "'></a>");
             var has_name = false;
             if (dialog_json.fields.name) {
@@ -92,7 +91,7 @@ $(document).ready(function() {
             url : rest_root + name,
             success : handler,
             type : "PUT",
-            data : JSON.stringify([obj]),
+            data : JSON.stringify(obj),
             error : handle_error
         });
     }
