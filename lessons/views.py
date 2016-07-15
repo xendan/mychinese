@@ -1,12 +1,9 @@
-from django.shortcuts import render
+from django.core.serializers.json import Serializer as Builtin_Serializer
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
 
-from django.core import serializers
+from lessons.models import PaidCounter, Lesson, Dialog, HomeWork, Note, Word
 
-from lessons.models import PaidCounter, Lesson, Dialog, HomeWork, Note
-from django.core.serializers.json import Serializer as Builtin_Serializer
 
 class MySerializer(Builtin_Serializer):
     def to_json(self, obj, **options):
@@ -37,9 +34,6 @@ def create_lesson(request):
         home_work.save()
         lesson = Lesson(dialog = dialog, home_work = home_work)
         lesson.save()
-        note = Note()
-        note.lesson = lesson
-        note.save()
         return lesson
 
     counter = PaidCounter.load()

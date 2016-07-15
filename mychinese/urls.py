@@ -62,7 +62,7 @@ def create_search(cls, param_name):
     def handler(request):
         try:
             param_value = request.GET.get(param_name, '')
-            obj_json = my_serializer.to_json(cls.objects.get(**{param_name : param_value}))
+            obj_json = serializers.serialize('json', cls.objects.filter(**{param_name : param_value}))
         except cls.DoesNotExist:
             obj_json = None
         return HttpResponse(obj_json, content_type="application/json")

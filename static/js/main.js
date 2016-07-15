@@ -68,10 +68,34 @@ $(document).ready(function() {
 
     }
 
+    function on_words_loaded(lesson_id) {
+        return function(words) {
+            $("#words").html("");
+            function append_word(word) {
+                function create_word_element(name) {
+                        var input = $("<input type='text' name='" + name + "' value='" + word.fields[name] + "' />");
+                        return input;
+                 }
+                var form = $("<from><input type='hidden' name='lesson' value='" + lesson_id + "'/></form>");
+                if (word.pk) {
+                   form.append("<input type='hidden' name='id' value='" + word.pk + "'/>");
+                }
+                    form.append(create_word_element("chinese"))
+                        .append(create_word_element("pinyin"))
+                        .append(create_word_element("translation"))
+                    $("#words").append($("<li></li>").append(form));
+            }
+            var empty_word = {fields:{chinese:"", pinyin: "", translation:""}};
+            append_word(empty_word);
+            words.forEach(append_word);
+        }
+    }
+
     function on_lesson_loaded(lesson_json) {
         $("#date").html("Date:" + new Date(last_lesson.fields.date).toLocaleDateString("en-US"));
         rest_get("dialog", lesson_json.fields.dialog, on_dialog_loaded);
         rest_search("note", lesson_json.pk, on_notes_loaded)
+        rest_search("word", lesson_json.pk, on_words_loaded(lesson_json.pk))
     }
 
     function start_new_lesson(lesson_json) {
