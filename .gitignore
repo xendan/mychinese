@@ -1,5 +1,7 @@
 .idea
 *.swp
+*.swo
 *.pyc
 __pycache__/
 mychinese/dbproperties.py
+migrations/

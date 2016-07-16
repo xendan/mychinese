@@ -27,6 +27,30 @@ $(document).ready(function() {
         }
     });
 
+    (function($) {
+          $.fn.onDelayedInput = function(onValueChangedHandler) {
+            var _self = this;
+            var timeout_is_on = false;
+            this.bind('input', function(event) {
+                function on_delay() {
+                    if (value_old == _self.val()) {
+                        timeout_is_on = false;
+                        onValueChangedHandler(value_old);
+                    } else {
+                        setTimeout(on_delay, 500);
+                    }
+                    value_old = _self.val();
+                }
+                var value_old = _self.val();
+                if (!timeout_is_on) {
+                    timeout_is_on = true;
+                    setTimeout(on_delay, 500);
+                }
+            });
+            return this;
+           }
+      })(jQuery);
+
     function handle_error(xhr, errmsg, err) {
         console.log(xhr.status + ": " + xhr.responseText);
     }
@@ -41,7 +65,7 @@ $(document).ready(function() {
             $("#dialog").append(link).bind('input', function(event) {
                     setTimeout( function() {
                         dialog_json.fields[name] = link.val();
-                        rest_put("dialog", dialog_json, on_dialog_loaded);
+                        rest_update("PUT", "dialog", dialog_json, on_dialog_loaded);
                      }, 100);
             });
         }
@@ -71,22 +95,39 @@ $(document).ready(function() {
     function on_words_loaded(lesson_id) {
         return function(words) {
             $("#words").html("");
+            var all_fields = ["chinese", "pinyin", "translation"];
             function append_word(word) {
-                function create_word_element(name) {
-                        var input = $("<input type='text' name='" + name + "' value='" + word.fields[name] + "' />");
-                        return input;
-                 }
-                var form = $("<from><input type='hidden' name='lesson' value='" + lesson_id + "'/></form>");
-                if (word.pk) {
-                   form.append("<input type='hidden' name='id' value='" + word.pk + "'/>");
+                function on_word_updated(new_word) {
+                    if (!word.hasOwnProperty("pk")) {
+                        apend_empty_word();
+                    }
+                    word.pk = new_word.pk;
                 }
-                    form.append(create_word_element("chinese"))
-                        .append(create_word_element("pinyin"))
-                        .append(create_word_element("translation"))
-                    $("#words").append($("<li></li>").append(form));
+
+                function create_word_element(name) {
+                    var input = $("<input type='text' name='" + name + "' value='" + word.fields[name] + "' />");
+                    input.onDelayedInput(function(value) {
+                        var type = word.hasOwnProperty("pk") ? "POST" : "PUT";    
+                        word.fields[name] = value;
+                        rest_update(type, "word", word, on_word_updated);
+                    });
+                    return input;
+                 }
+                var form = $("<from></form>");
+                all_fields.forEach(function(field) {
+                    form.append(create_word_element(field))
+                });
+                $("#words").append($("<li></li>").append(form));
             }
-            var empty_word = {fields:{chinese:"", pinyin: "", translation:""}};
-            append_word(empty_word);
+            function append_empty_word() {
+                var fields = {lesson:lesson_id};
+                all_fields.forEach(function(field) {
+                    fields[field] = "";
+                });
+                var empty_word = {model:"lessons.word", fields:fields};
+                append_word(empty_word);
+            }
+            append_empty_word();
             words.forEach(append_word);
         }
     }
@@ -124,11 +165,11 @@ $(document).ready(function() {
         });
     }
 
-    function rest_put(name, obj, handler) {
+    function rest_update(type, name, obj, handler) {
         $.ajax({
             url : rest_root + name,
             success : handler,
-            type : "PUT",
+            type : type,
             data : JSON.stringify(obj),
             error : handle_error
         });

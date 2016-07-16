@@ -27,8 +27,8 @@ from django.http import HttpResponse, JsonResponse
 from lessons.views import  pay_lessons, create_lesson, my_serializer
 from lessons.models import Dialog, HomeWork, Note, Word
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-#import logging
-#logger = logging.getLogger(__name__)
+import logging
+logger = logging.getLogger(__name__)
 
 admin.autodiscover()
 
@@ -47,32 +47,42 @@ def create_get(cls):
 
     return url(rest_root + class_to_url(cls) + r'/([0-9]+)', handler)
 
-def create_put(cls):
+def create_put_post_search(cls, param_name):
     def handler(request):
-        if request.method == 'PUT':
-            body_unicode = request.body.decode('utf-8')
-            for obj in serializers.deserialize("json", "[" + body_unicode + "]"):
-                obj.save()
-            return HttpResponse(request.body, content_type="application/json")
+        if request.method == 'PUT' or request.method == 'POST':
+            obj_str_json = request.body.decode('utf-8')
+            id_re = r"pk\s+=\s(.+)"
+            regexp = re.compile(id_re)
+            is_new = False
+            null_id="\"pk\":\"-1\","
+            if regexp.search(obj_str_json) is None:
+                is_new = True
+                obj_str_json = "{" + null_id + obj_str_json.strip()[1:]
+            #django don't deserialize without id
+            for obj in serializers.deserialize("json", "[" + obj_str_json + "]"):
+                if is_new:
+                    obj.object.pk = None 
+                    obj.object.id = None 
+                new_id = obj.save()
+                if is_new:
+                    obj_str_json.replace(null_id, "\"pk\":\"%d\"," % new_id)
+            return HttpResponse(new_id, content_type="application/json")
+        elif request.method == 'GET':
+            try:
+                param_value = request.GET.get(param_name, '')
+                obj_json = serializers.serialize('json', cls.objects.filter(**{param_name : param_value}))
+            except cls.DoesNotExist:
+                obj_json = None
+            return HttpResponse(obj_json, content_type="application/json")
         else:
-            return JsonResponse({"nothing to see": "this isn't happening"})
+            return JsonResponse({"error": "PUT and POST are supported"})
     return url(rest_root + class_to_url(cls), handler)
-
-def create_search(cls, param_name):
-    def handler(request):
-        try:
-            param_value = request.GET.get(param_name, '')
-            obj_json = serializers.serialize('json', cls.objects.filter(**{param_name : param_value}))
-        except cls.DoesNotExist:
-            obj_json = None
-        return HttpResponse(obj_json, content_type="application/json")
-    return url(rest_root + class_to_url(cls) + r'$', handler)
 
 urlpatterns = [ create_get(HomeWork),
                 create_get(Dialog),
-                create_put(Dialog),
-                create_search(Note, "lesson"),
-                create_search(Word, "lesson"),
+                create_put_post_search(Dialog, "lesson"),
+                create_put_post_search(Note, "lesson"),
+                create_put_post_search(Word, "lesson"),
                  url(r'^$', 'mychinese.index.index'),
                  url(r'^pay_lessons', pay_lessons),
                  url(r'^lessons/lesson', create_lesson),
