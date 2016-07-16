@@ -9,7 +9,12 @@ class MySerializer(Builtin_Serializer):
     def to_json(self, obj, **options):
         if obj:
             fields = options.pop("fields", None)
-            return self.serialize([obj,], fields=fields)[1:-1]
+            return self.serialize([obj,], use_natural_primary_keys=True, fields=fields)[1:-1]
+
+    def get_dump_object(self, obj):
+        data = super(MySerializer, self).get_dump_object(obj)
+        data["fields"]["id"] = data["pk"]
+        return data["fields"]
 
 my_serializer = MySerializer()
 
