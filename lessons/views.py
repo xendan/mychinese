@@ -13,6 +13,7 @@ from django.core.serializers.python import (
     Deserializer as PythonDeserializer, Serializer as PythonSerializer,
 )
 
+
 class MySerializer(Builtin_Serializer):
     def to_json(self, obj, **options):
         if obj:

@@ -38,7 +38,10 @@ rest_root = re.escape(module_name) + r'/'
 
 
 def class_to_url(cls):
-    return re.escape(cls.__name__.lower())
+    def camel_case_to_snake(name):
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+    return re.escape(camel_case_to_snake(cls.__name__))
 
 
 def bad_request(message):
@@ -73,7 +76,7 @@ def create_put_post_search(cls, param_name):
             return HttpResponse(obj_dict, content_type="application/json")
         if request.method == 'PUT' or request.method == 'POST':
             obj_dict = json.loads(request.body.decode('utf-8'))
-            for obj in my_serializer.from_json(module_name + "." + cls.__name__.lower(), obj_dict):
+            for obj in my_serializer.from_json(module_name + "." + class_to_url(cls), obj_dict):
                 obj.save()
                 obj_dict["id"] = obj.object.id
 
@@ -84,6 +87,7 @@ def create_put_post_search(cls, param_name):
     return url(rest_root + class_to_url(cls) + r'$', handler)
 
 urlpatterns = [create_get_and_delete(HomeWork),
+               create_put_post_search(HomeWork, "lesson"),
                create_get_and_delete(Dialog),
                create_get_and_delete(Word),
                create_get_and_delete(Note),

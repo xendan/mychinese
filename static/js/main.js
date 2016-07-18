@@ -148,11 +148,27 @@ $(document).ready(function() {
         }
     }
 
+    function on_home_work_loaded(home_work_json) {
+        $("#home_work").html("");
+        var task_input = $("<textarea name='task' placeholder='No Homework!' cols='50' rows='4' />")
+            .onDelayedInput(function(val) {
+                home_work_json.task = val;
+                rest_update("POST", "home_work", home_work_json, on_home_work_loaded);
+            });
+
+        $("#home_work").append(task_input);
+        if (home_work_json.answer) {
+            $("#home_work").append($("<texarea name='answer' placeholder='Not done yet' cols='50' rows='4' />"))
+        }
+    }
+
     function on_lesson_loaded(lesson_json) {
         $("#date").html("Date:" + new Date(last_lesson.date).toLocaleDateString("en-US"));
-        rest_get("dialog", lesson_json.dialog, on_dialog_loaded);
-        rest_search("note", lesson_json.id, on_notes_loaded)
-        rest_search("word", lesson_json.id, on_words_loaded(lesson_json.id))
+        rest_get("dialog", lesson_json.dialog, on_dialog_loaded(lesson_json.id));
+        rest_get("home_work", lesson_json.home_work, on_home_work_loaded);
+        rest_search("note", lesson_json.id, on_notes_loaded(lesson_json.id));
+        rest_search("word", lesson_json.id, on_words_loaded(lesson_json.id));
+
     }
 
     function start_new_lesson(lesson_json) {

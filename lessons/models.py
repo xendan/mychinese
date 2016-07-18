@@ -23,8 +23,8 @@ class Dialog(models.Model):
 
 class Lesson(models.Model):
     date = models.DateTimeField(default=datetime.now)
-    home_work =  models.OneToOneField(HomeWork, related_name = 'lesson', null=True, blank=True)
-    dialog =  models.OneToOneField(Dialog, related_name = 'lesson', null=True, blank=True)
+    home_work = models.OneToOneField(HomeWork, related_name = 'lesson', null=True, blank=True)
+    dialog = models.OneToOneField(Dialog, related_name = 'lesson', null=True, blank=True)
 
     def __str__(self):
         return self.date.__str__()
