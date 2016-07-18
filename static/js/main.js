@@ -64,17 +64,17 @@ $(document).ready(function() {
             var link = $("<input id='dialog_" + name + "_inp' type='text'/>");
             $("#dialog").append(link).bind('input', function(event) {
                     setTimeout( function() {
-                        dialog_json.fields[name] = link.val();
+                        dialog_json[name] = link.val();
                         rest_update("PUT", "dialog", dialog_json, on_dialog_loaded);
                      }, 100);
             });
         }
         $("#dialog").html("");
-        if (dialog_json.fields.link) {
-            var dialog_href = $("<a target='_blank'  href='" + dialog_json.fields.link + "'></a>");
+        if (dialog_json.link) {
+            var dialog_href = $("<a target='_blank'  href='" + dialog_json.link + "'></a>");
             var has_name = false;
-            if (dialog_json.fields.name) {
-                dialog_href.html(dialog_json.fields.name);
+            if (dialog_json.name) {
+                dialog_href.html(dialog_json.name);
                 has_name = true;
             }
             $("#dialog").append(dialog_href);
@@ -98,17 +98,17 @@ $(document).ready(function() {
             var all_fields = ["chinese", "pinyin", "translation"];
             function append_word(word) {
                 function on_word_updated(new_word) {
-                    if (!word.hasOwnProperty("pk")) {
+                    if (!word.hasOwnProperty("id")) {
                         apend_empty_word();
                     }
-                    word.pk = new_word.pk;
+                    word.id = new_word.id;
                 }
 
                 function create_word_element(name) {
-                    var input = $("<input type='text' name='" + name + "' value='" + word.fields[name] + "' />");
+                    var input = $("<input type='text' name='" + name + "' value='" + word[name] + "' />");
                     input.onDelayedInput(function(value) {
-                        var type = word.hasOwnProperty("pk") ? "POST" : "PUT";    
-                        word.fields[name] = value;
+                        var type = word.hasOwnProperty("id") ? "POST" : "PUT";
+                        word[name] = value;
                         rest_update(type, "word", word, on_word_updated);
                     });
                     return input;
@@ -120,11 +120,10 @@ $(document).ready(function() {
                 $("#words").append($("<li></li>").append(form));
             }
             function append_empty_word() {
-                var fields = {lesson:lesson_id};
+                var empty_word = {lesson:lesson_id};
                 all_fields.forEach(function(field) {
-                    fields[field] = "";
+                    empty_word[field] = "";
                 });
-                var empty_word = {model:"lessons.word", fields:fields};
                 append_word(empty_word);
             }
             append_empty_word();
@@ -133,10 +132,10 @@ $(document).ready(function() {
     }
 
     function on_lesson_loaded(lesson_json) {
-        $("#date").html("Date:" + new Date(last_lesson.fields.date).toLocaleDateString("en-US"));
-        rest_get("dialog", lesson_json.fields.dialog, on_dialog_loaded);
-        rest_search("note", lesson_json.pk, on_notes_loaded)
-        rest_search("word", lesson_json.pk, on_words_loaded(lesson_json.pk))
+        $("#date").html("Date:" + new Date(last_lesson.date).toLocaleDateString("en-US"));
+        rest_get("dialog", lesson_json.dialog, on_dialog_loaded);
+        rest_search("note", lesson_json.id, on_notes_loaded)
+        rest_search("word", lesson_json.id, on_words_loaded(lesson_json.id))
     }
 
     function start_new_lesson(lesson_json) {

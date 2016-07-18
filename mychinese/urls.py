@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 import re
+import json
 from django.conf.urls import patterns,  url, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 # Uncomment the next two lines to enable the admin:
@@ -32,7 +33,8 @@ logger = logging.getLogger(__name__)
 
 admin.autodiscover()
 
-rest_root = r'lessons/'
+module_name = "lessons"
+rest_root = re.escape(module_name) + r'/'
 
 def class_to_url(cls):
     return re.escape(cls.__name__.lower())
@@ -50,30 +52,21 @@ def create_get(cls):
 def create_put_post_search(cls, param_name):
     def handler(request):
         if request.method == 'PUT' or request.method == 'POST':
-            obj_str_json = request.body.decode('utf-8')
-            id_re = r"pk\s+=\s(.+)"
-            regexp = re.compile(id_re)
-            is_new = False
-            null_id="\"pk\":\"-1\","
-            if regexp.search(obj_str_json) is None:
-                is_new = True
-                obj_str_json = "{" + null_id + obj_str_json.strip()[1:]
-            #django don't deserialize without id
-            for obj in serializers.deserialize("json", "[" + obj_str_json + "]"):
-                if is_new:
-                    obj.object.pk = None 
-                    obj.object.id = None 
-                new_id = obj.save()
-                if is_new:
-                    obj_str_json.replace(null_id, "\"pk\":\"%d\"," % new_id)
-            return HttpResponse(new_id, content_type="application/json")
+            obj_dict = json.loads(request.body.decode('utf-8'))
+            for obj in my_serializer.from_json(module_name + "." + cls.__name__.lower(), obj_dict):
+                print("!!!!!!")
+                print(obj.object)
+                obj.save()
+                obj_dict["id"] = obj.object.id
+
+            return HttpResponse(obj_dict, content_type="application/json")
         elif request.method == 'GET':
             try:
                 param_value = request.GET.get(param_name, '')
-                obj_json = serializers.serialize('json', cls.objects.filter(**{param_name : param_value}))
+                obj_dict = my_serializer.to_json(cls.objects.filter(**{param_name : param_value}))
             except cls.DoesNotExist:
-                obj_json = None
-            return HttpResponse(obj_json, content_type="application/json")
+                obj_dict = None
+            return HttpResponse(obj_dict, content_type="application/json")
         else:
             return JsonResponse({"error": "PUT and POST are supported"})
     return url(rest_root + class_to_url(cls), handler)
