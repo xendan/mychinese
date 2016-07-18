@@ -36,68 +36,82 @@ admin.autodiscover()
 module_name = "lessons"
 rest_root = re.escape(module_name) + r'/'
 
+
 def class_to_url(cls):
     return re.escape(cls.__name__.lower())
 
-def create_get(cls):
-    def handler(request, obj_id):
-        try:
-            obj_json = my_serializer.to_json(cls.objects.get(pk = obj_id))
-        except cls.DoesNotExist:
-            obj_json = None
-        return HttpResponse(obj_json, content_type="application/json")
 
-    return url(rest_root + class_to_url(cls) + r'/([0-9]+)', handler)
+def bad_request(message):
+    return JsonResponse({"error": message}, status=400)
+
+
+def create_get_and_delete(cls):
+    def handler(request, obj_id):
+        if request.method == 'GET':
+            try:
+                obj_json = my_serializer.to_json(cls.objects.get(pk=obj_id))
+            except cls.DoesNotExist:
+                obj_json = None
+            return HttpResponse(obj_json, content_type="application/json")
+        if request.method == 'DELETE':
+            cls.objects.filter(id=obj_id).delete()
+            return JsonResponse({})
+        else:
+            return bad_request("DELETE and GET are supported")
+
+    return url(rest_root + class_to_url(cls) + r'/([0-9]+)$', handler)
+
 
 def create_put_post_search(cls, param_name):
     def handler(request):
-        if request.method == 'PUT' or request.method == 'POST':
-            obj_dict = json.loads(request.body.decode('utf-8'))
-            for obj in my_serializer.from_json(module_name + "." + cls.__name__.lower(), obj_dict):
-                print("!!!!!!")
-                print(obj.object)
-                obj.save()
-                obj_dict["id"] = obj.object.id
-
-            return HttpResponse(obj_dict, content_type="application/json")
-        elif request.method == 'GET':
+        if request.method == 'GET':
             try:
                 param_value = request.GET.get(param_name, '')
-                obj_dict = my_serializer.to_json(cls.objects.filter(**{param_name : param_value}))
+                obj_dict = my_serializer.to_json(cls.objects.filter(**{param_name: param_value}))
             except cls.DoesNotExist:
                 obj_dict = None
             return HttpResponse(obj_dict, content_type="application/json")
+        if request.method == 'PUT' or request.method == 'POST':
+            obj_dict = json.loads(request.body.decode('utf-8'))
+            for obj in my_serializer.from_json(module_name + "." + cls.__name__.lower(), obj_dict):
+                obj.save()
+                obj_dict["id"] = obj.object.id
+
+            return JsonResponse(obj_dict, content_type="application/json")
         else:
-            return JsonResponse({"error": "PUT and POST are supported"})
-    return url(rest_root + class_to_url(cls), handler)
+            return bad_request("PUT, POST and GET are supported")
 
-urlpatterns = [ create_get(HomeWork),
-                create_get(Dialog),
-                create_put_post_search(Dialog, "lesson"),
-                create_put_post_search(Note, "lesson"),
-                create_put_post_search(Word, "lesson"),
-                 url(r'^$', 'mychinese.index.index'),
-                 url(r'^pay_lessons', pay_lessons),
-                 url(r'^lessons/lesson', create_lesson),
+    return url(rest_root + class_to_url(cls) + r'$', handler)
 
-                  # Uncomment the admin/doc line below to enable admin documentation:
+urlpatterns = [create_get_and_delete(HomeWork),
+               create_get_and_delete(Dialog),
+               create_get_and_delete(Word),
+               create_get_and_delete(Note),
+               create_put_post_search(Dialog, "lesson"),
+               create_put_post_search(Note, "lesson"),
+               create_put_post_search(Word, "lesson"),
+               url(r'^$', 'mychinese.index.index'),
+               url(r'^pay_lessons', pay_lessons),
+               url(r'^lessons/lesson', create_lesson),
+
+               # Uncomment the admin/doc line below to enable admin documentation:
                   url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
-                  # Uncomment the next line to enable the admin:
+               # Uncomment the next line to enable the admin:
                   url(r'^admin/', admin.site.urls),
-                  url(r'^accounts/login/$', auth_views.login),
-                  url(
+               url(r'^accounts/login/$', auth_views.login),
+               url(
                       regex=r'^login/$', 
                       view=login, 
                       kwargs={'template_name': 'login.html'}, 
                       name='login'
                    ),
-                   url(
+               url(
                       regex=r'^logout/$', 
                       view=logout, 
                       kwargs={'next_page': '/'}, 
                       name='logout'
                      ),
-] 
+               ]
 
 urlpatterns += staticfiles_urlpatterns()

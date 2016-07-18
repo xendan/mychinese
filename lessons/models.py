@@ -1,6 +1,7 @@
 from django.db import models
 from datetime import datetime 
 
+
 class HomeWork(models.Model):
     task = models.TextField()
     answer = models.TextField()
@@ -8,6 +9,7 @@ class HomeWork(models.Model):
 
     def __str__(self):
         return self.task
+
 
 class Dialog(models.Model):
 
@@ -17,6 +19,7 @@ class Dialog(models.Model):
 
     def __str__(self):
         return "Link=%s; in dict= %s" % (self.link, self.lessons_in_dict)
+
 
 class Lesson(models.Model):
     date = models.DateTimeField(default=datetime.now)
@@ -29,8 +32,9 @@ class Lesson(models.Model):
     class Meta:
         get_latest_by = 'date'
 
+
 class Word(models.Model):
-    chinese =  models.CharField(max_length = 10)
+    chinese = models.CharField(max_length = 10)
     pinyin = models.CharField(max_length = 10)
     translation = models.CharField(max_length = 250)
     lesson = models.ForeignKey(Lesson, related_name = 'lessons')
@@ -38,11 +42,13 @@ class Word(models.Model):
     def __str__(self):
         return "%s %s %s" % (self.chinese, self.pinyin, self.translation)
 
+
 class Note(models.Model):
     content = models.TextField()
     store_in_grammar = models.BooleanField(default=False)
     image = models.ImageField()
     lesson = models.ForeignKey(Lesson, related_name = 'notes')
+
     def __str__(self):
         return self.content
 
@@ -59,7 +65,7 @@ class PaidCounter(models.Model):
 
     @classmethod
     def load(cls):
-         try:
-             return cls.objects.get()
-         except cls.DoesNotExist:
-             return cls()
+        try:
+            return cls.objects.get()
+        except cls.DoesNotExist:
+            return cls()

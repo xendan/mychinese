@@ -99,11 +99,21 @@ $(document).ready(function() {
             function append_word(word) {
                 function on_word_updated(new_word) {
                     if (!word.hasOwnProperty("id")) {
-                        apend_empty_word();
+                        append_empty_word();
+                        append_delete_link($("#new_word_row"));
+
                     }
                     word.id = new_word.id;
                 }
-
+                function append_delete_link(li) {
+                    li.append($("<a href='#'>X</a>").click(function() {
+                        rest_delete("word", word.id, function() {
+                            $("#word_row" + word.id).remove();
+                        });
+                        li.attr("id", "word_row" + word.id);
+                        return false;
+                    }));
+                }
                 function create_word_element(name) {
                     var input = $("<input type='text' name='" + name + "' value='" + word[name] + "' />");
                     input.onDelayedInput(function(value) {
@@ -117,7 +127,14 @@ $(document).ready(function() {
                 all_fields.forEach(function(field) {
                     form.append(create_word_element(field))
                 });
-                $("#words").append($("<li></li>").append(form));
+                var li = $("<li></li>").append(form);
+                if (word.hasOwnProperty("id")) {
+                    append_delete_link(li);
+                } else {
+                    li.attr("id", "new_word_row");
+                }
+
+                $("#words").append(li);
             }
             function append_empty_word() {
                 var empty_word = {lesson:lesson_id};
@@ -126,8 +143,8 @@ $(document).ready(function() {
                 });
                 append_word(empty_word);
             }
-            append_empty_word();
             words.forEach(append_word);
+            append_empty_word();
         }
     }
 
@@ -153,6 +170,15 @@ $(document).ready(function() {
             success : handler,
             error : handle_error,
             data : {lesson: lesson}
+        });
+    }
+
+    function rest_delete(name, id, handler) {
+        $.ajax({
+            url : rest_root + name + "/" + id,
+            success : handler,
+            error : handle_error,
+            type : "DELETE"
         });
     }
 
@@ -186,6 +212,7 @@ $(document).ready(function() {
     $('#pay_form').on('submit', function(event){
         event.preventDefault();
         $.ajax({
+        //TODO make more rest
             url : "pay_lessons",
             type : "POST",
             data: $("#pay_form").serialize(),
