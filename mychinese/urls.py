@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 admin.autodiscover()
 
+#TODO move to lessons
 module_name = "lessons"
 rest_root = re.escape(module_name) + r'/'
 
@@ -67,6 +68,9 @@ def create_get_and_delete(cls):
 
 def create_put_post_search(cls, param_name):
     def handler(request):
+        def to_model_name():
+            return module_name + "." + cls.__name__.lower()
+
         if request.method == 'GET':
             try:
                 param_value = request.GET.get(param_name, '')
@@ -76,7 +80,7 @@ def create_put_post_search(cls, param_name):
             return HttpResponse(obj_dict, content_type="application/json")
         if request.method == 'PUT' or request.method == 'POST':
             obj_dict = json.loads(request.body.decode('utf-8'))
-            for obj in my_serializer.from_json(module_name + "." + class_to_url(cls), obj_dict):
+            for obj in my_serializer.from_json(to_model_name(), obj_dict):
                 obj.save()
                 obj_dict["id"] = obj.object.id
 
@@ -85,6 +89,7 @@ def create_put_post_search(cls, param_name):
             return bad_request("PUT, POST and GET are supported")
 
     return url(rest_root + class_to_url(cls) + r'$', handler)
+
 
 urlpatterns = [create_get_and_delete(HomeWork),
                create_put_post_search(HomeWork, "lesson"),

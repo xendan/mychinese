@@ -35,7 +35,7 @@ $(document).ready(function() {
                 function on_delay() {
                     if (value_old == _self.val()) {
                         timeout_is_on = false;
-                        onValueChangedHandler(value_old);
+                        onValueChangedHandler(_self);
                     } else {
                         setTimeout(on_delay, 500);
                     }
@@ -116,9 +116,9 @@ $(document).ready(function() {
                 }
                 function create_word_element(name) {
                     var input = $("<input type='text' name='" + name + "' value='" + word[name] + "' />");
-                    input.onDelayedInput(function(value) {
+                    input.onDelayedInput(function(self) {
                         var type = word.hasOwnProperty("id") ? "POST" : "PUT";
-                        word[name] = value;
+                        word[name] = self.val();
                         rest_update(type, "word", word, on_word_updated);
                     });
                     return input;
@@ -150,15 +150,26 @@ $(document).ready(function() {
 
     function on_home_work_loaded(home_work_json) {
         $("#home_work").html("");
-        var task_input = $("<textarea name='task' placeholder='No Homework!' cols='50' rows='4' />")
-            .onDelayedInput(function(val) {
-                home_work_json.task = val;
-                rest_update("POST", "home_work", home_work_json, on_home_work_loaded);
-            });
-
-        $("#home_work").append(task_input);
-        if (home_work_json.answer) {
-            $("#home_work").append($("<texarea name='answer' placeholder='Not done yet' cols='50' rows='4' />"))
+        var fields = {task: 'No Homework!', answer: 'Not done yet', correct: 'Not yet corrected'};
+        var append = true;
+        for (var name in fields) {
+            var input = $( "input[value='" + name + "]" );
+            if (append) {
+                if (!input.length) {
+                    input = $("<textarea name='" + name+ "' placeholder='"+ fields[name] + "' cols='50' rows='4' />")
+                    $("#home_work").append(input);
+                }
+                input.val(home_work_json[name])
+                .onDelayedInput(function(self) {
+                    home_work_json[self.attr("name")] = self.val();
+                    rest_update("POST", "home_work", home_work_json, on_home_work_loaded);
+                });
+                if (!home_work_json[name]) {
+                    append = false;
+                }
+            } else {
+                input.remove();
+            }
         }
     }
 
