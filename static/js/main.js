@@ -30,23 +30,29 @@ $(document).ready(function() {
     (function($) {
           $.fn.onDelayedInput = function(onValueChangedHandler) {
             var _self = this;
-            var timeout_is_on = false;
-            this.bind('input', function(event) {
-                function on_delay() {
-                    if (value_old == _self.val()) {
-                        timeout_is_on = false;
-                        onValueChangedHandler(_self);
-                    } else {
+            if (this.is(':checkbox')) {
+                this.change(function(){
+                    onValueChangedHandler(_self);
+                });
+            } else {
+                var timeout_is_on = false;
+                this.bind('input', function(event) {
+                    function on_delay() {
+                        if (value_old == _self.val()) {
+                            timeout_is_on = false;
+                            onValueChangedHandler(_self);
+                        } else {
+                            setTimeout(on_delay, 500);
+                        }
+                        value_old = _self.val();
+                    }
+                    var value_old = _self.val();
+                    if (!timeout_is_on) {
+                        timeout_is_on = true;
                         setTimeout(on_delay, 500);
                     }
-                    value_old = _self.val();
-                }
-                var value_old = _self.val();
-                if (!timeout_is_on) {
-                    timeout_is_on = true;
-                    setTimeout(on_delay, 500);
-                }
-            });
+                });
+             }
             return this;
            }
       })(jQuery);
@@ -88,9 +94,6 @@ $(document).ready(function() {
         }
     }
 
-    function on_notes_loaded(notes_arr) {
-
-    }
 
     function on_words_loaded(lesson_id) {
         return function(words) {
@@ -173,12 +176,73 @@ $(document).ready(function() {
         }
     }
 
+    function on_notes_loaded(lesson_id) {
+        return function(notes) {
+            function on_note_updated(note) {
+                console.log(note);
+            }
+
+            function create_note_form(note) {
+                if (note.hasOwnProperty("id")) {
+                    var form_suffix = note.id;
+                    var is_new = false;
+                } else {
+                    var form_suffix = "_new";
+                    var is_new = true;
+                }
+
+                var form_id = "note" + form_suffix;
+                var form = $("note" + form_id);
+                if (!form.length) {
+                    form = $("<form id='" + form_id + "'></form>").append(
+                        "<textarea name='content' placeholder='no note' cols='50' rows='4' />"
+                    ).append(
+                        "<div>Store in grammar: <input type='checkbox' name='store_in_grammar' /></div>"
+                    ).append("<input type='hidden' name='lesson' value='" + lesson_id + "'/>");
+
+                    form.append("<input type='file' name='image' />");
+                    $("#notes").append($("<li></li>").append(form));
+                }
+                var fields = ["content", "store_in_grammar", "image"];
+                fields.forEach(function(field) {
+                    var input = form.find("[name='" + field + "']");
+                    if (field != 'image') {
+                        input.val(note[field]);
+                    } else if (note.image ) {
+                        input.inserBefore("<img src='" + note.image + "' />");
+                    }
+                    input.onDelayedInput(function(self) {
+                        rest_update(is_new ? "POST" : "PUT", "note", form, on_note_updated);
+
+                    });
+                });
+                if (!is_new) {
+                    var id_input = form.find("[name='id']");
+                    if (!id_input.length) {
+                        form.append("<input type='hidden' name='id' value='" + note.id + "'/>");
+                    }
+                }
+            }
+            function create_new_note_form() {
+                return {
+                    "lesson": lesson_id,
+                    "image" : "",
+                    "store_in_grammar" :  false
+                }
+            }
+            notes.forEach(function(note) {
+                create_note_form(note);
+            });
+            create_note_form(create_new_note_form());
+        }
+    }
+
     function on_lesson_loaded(lesson_json) {
-        $("#date").html("Date:" + new Date(last_lesson.date).toLocaleDateString("en-US"));
+        $("#date").html("Date:" + new Date(lesson_json.date).toLocaleDateString("en-US"));
         rest_get("dialog", lesson_json.dialog, on_dialog_loaded(lesson_json.id));
         rest_get("home_work", lesson_json.home_work, on_home_work_loaded);
-        rest_search("note", lesson_json.id, on_notes_loaded(lesson_json.id));
         rest_search("word", lesson_json.id, on_words_loaded(lesson_json.id));
+        rest_search("note", lesson_json.id, on_notes_loaded(lesson_json.id))
 
     }
 
@@ -217,12 +281,18 @@ $(document).ready(function() {
         });
     }
 
-    function rest_update(type, name, obj, handler) {
+    function rest_update(type, name, form_or_json, handler) {
+        if (typeof form_or_json.serialize == 'function') {
+            data = form_or_json.serialize();
+        } else {
+            data = JSON.stringify(form_or_json);
+        }
+
         $.ajax({
             url : rest_root + name,
             success : handler,
             type : type,
-            data : JSON.stringify(obj),
+            data : data,
             error : handle_error
         });
     }

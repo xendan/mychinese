@@ -6,4 +6,4 @@ from lessons.models import Note
 class NoteForm(ModelForm):
     class Meta:
         model = Note
-        fields = ["content", "store_in_grammar", "image"]
+        fields = "__all__"

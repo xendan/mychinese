@@ -34,20 +34,20 @@ class Lesson(models.Model):
 
 
 class Word(models.Model):
-    chinese = models.CharField(max_length = 10)
-    pinyin = models.CharField(max_length = 10)
-    translation = models.CharField(max_length = 250)
-    lesson = models.ForeignKey(Lesson, related_name = 'lessons')
+    chinese = models.CharField(max_length=10)
+    pinyin = models.CharField(max_length=10)
+    translation = models.CharField(max_length=250)
+    lesson = models.ForeignKey(Lesson, related_name='lessons')
 
     def __str__(self):
         return "%s %s %s" % (self.chinese, self.pinyin, self.translation)
 
 
 class Note(models.Model):
-    content = models.TextField()
+    content = models.TextField(null=True, blank=True)
     store_in_grammar = models.BooleanField(default=False)
-    image = models.ImageField()
-    lesson = models.ForeignKey(Lesson, related_name = 'notes')
+    image = models.ImageField(null=True, blank=True)
+    lesson = models.ForeignKey(Lesson, related_name='notes')
 
     def __str__(self):
         return self.content
